@@ -8,5 +8,5 @@ Materials Research Society -- Scraping and Natural Language Processing
 (A) Word Cloud of Most Common Terms in MRS Abstracts
 ![](images/wordcloud.png?raw=true)
 (A) Word Count Plots over time
-![](images/nanofibers.png?raw=true)
-![](images/zno.png?raw=true)
+![](images/nanofibers2.png?raw=true)
+![](images/zno2.png?raw=true)
