@@ -1,28 +1,37 @@
 #Cleaning and Visualizing Scraped Data from mrs.org
-#Lasted edited by Matt Groh on December 23, 2014
+#Last edited by Matt Groh on December 23, 2014
 
 require("dplyr")
+require("ggplot2")
+require("wordcloud")
+require("tm")
+require("NLP")
+require("cwhmisc")
+require("slam")
+require("e1071")
+require("Hmisc")
+
+
 setwd("~/Desktop/MRS/")
 
 list.files()
 
-df1 <- read.csv("MRS1.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df2 <- read.csv("MRS2.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df3 <- read.csvC"MRS3.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df4 <- read.csvC"MRS4.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df5 <- read.csvC"MRS5.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df6 <- read.csvC"MRS6.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df7 <- read.csvC"MRS7.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df8 <- read.csvC"MRS8.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df9 <- read.csvC"MRS9.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df10 <- read.csvC"MRS10.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df11 <- read.csvC"MRS11.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df12 <- read.csvC"MRS12.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df13 <- read.csvC"MRS13.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df14 <- read.csvC"MRS14.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df1 <- read.csv("MRS1001.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df2 <- read.csv("MRS1002.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df3 <- read.csv("MRS1003.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df4 <- read.csv("MRS1004.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df5 <- read.csv("MRS1005.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df6 <- read.csv("MRS1006.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df7 <- read.csv("MRS1007.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df8 <- read.csv("MRS1008.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df9 <- read.csv("MRS1009.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df10 <- read.csv("MRS1010.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df11 <- read.csv("MRS1011.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df12 <- read.csv("MRS1012.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df13 <- read.csv("MRS1013.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df14 <- read.csv("MRS1014.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
 
 df <- rbind(df1,df2,df3,df4,df5,df6,df8,df9,df11,df12,df13,df14)
-
 #Name Variables
 colnames(df)[1] <- "URL"
 colnames(df)[2] <- "Symposium"
@@ -31,7 +40,6 @@ colnames(df)[4] <- "Abstract"
 df$V5 <- NULL
 
 df <- df[!duplicated(df),]
-
 
 #Generate Column Indicating Year
 df$year <- NA
@@ -76,14 +84,108 @@ ggplot(x,aes(x=year,y=count)) + geom_point(size=4) +
   theme(text=element_text(size=16), panel.background=element_rect(fill='white'), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.text=element_text(size=12), legend.position="none") 
 
 
-ggplot(df,aes(twords)) + geom_histogram(binwidth=5)
+#ggplot(df,aes(twords)) + geom_histogram(binwidth=5)
 ggplot(df,aes(awords)) + geom_histogram(binwidth=10)
 
 View(df)
 
-
 #Questions 
+
 #(1) Term Frequency
+
+mach_corpus <- Corpus(VectorSource(as.character(df$Abstract)))
+#(1a) Create Document Term Matrix
+tdm <- TermDocumentMatrix(mach_corpus,
+                          control = list(removePunctuation = TRUE,
+                                         stopwords = c(stopwords("english"),"well","also","like","will","one","two"),
+                                         removeNumbers = TRUE, tolower = TRUE))
+tdm2 <- removeSparseTerms(tdm, 0.99999)
+dtm3 <- rollup(tdm, 2, na.rm=TRUE, FUN = sum)
+
+#(1b) define TDM as Matrix
+m = as.matrix(dtm3)
+n<-data.frame(m)
+n<-data.frame(as.character(rownames(n)),n)
+colnames(n)[1]="word"
+colnames(n)[2]<-"count"
+n<-n[order(-n$count),]
+
+
+#(1c) Plot Wordcloud
+wordcloud(n$word[1:200], n$count[1:200], random.order=FALSE, colors=brewer.pal(8, "Dark2"))
+View(n)
+
+# save the image in png format
+png("MRS_WordCloud.png", width=12, height=8, units="in", res=300)
+wordcloud(n$word[1:200], n$count[1:200], random.order=FALSE, colors=brewer.pal(8, "Dark2"))
+dev.off()
+
+
+c(1997:1999,2007:2011)
+
 #(2) Changes in Frequency over Time
+for (i in c(1997:1999,2007:2011)) {
+mach_corpus <- Corpus(VectorSource(as.character(df$Abstract[df$year==i])))
+tdm <- TermDocumentMatrix(mach_corpus,
+                          control = list(removePunctuation = TRUE,
+                                         stopwords = c(stopwords("english"),"well","also","like","will","one","two"),
+                                         removeNumbers = FALSE, tolower = TRUE))
+tdm2 <- removeSparseTerms(tdm, 0.99999)
+dtm3 <- rollup(tdm, 2, na.rm=TRUE, FUN = sum)
+m = as.matrix(dtm3)
+n<-data.frame(m)
+n<-data.frame(as.character(rownames(n)),n)
+colnames(n)[1]="word"
+colnames(n)[2]<-"count"
+n<-n[order(-n$count),]
+#n <- n[1:100,]
+n$rank <- seq_along(1:length(n$count)) 
+n$year <- i
+assign(paste("y",i,sep=""),n)
+}
+
+data <- rbind(y1997,y1998,y1999,y2007,y2008,y2009,y2010,y2011)
+
+y <- data %>% group_by(word) %>% summarize(count=n(), mean=mean(rank), sd=sd(rank), skew=skewness(rank),kurt=kurtosis(rank), corr=cor(rank,year))
+y <- y[y$count>5 & y$corr<0,]
+y <- y[order(y$corr),]
+View(y)
+
+m="silicon"
+m="carbon"
+m="nanowires"
+m="nanofibers"
+m="zno"
+
+
+x <- data[data$word==m,]
+
+ggplot(x,aes(x=year,y=rank)) + geom_point(size=5) +   
+  xlab("Year") +
+  ylab("Word Rank") +
+  ggtitle(paste("Rank of", capitalize(m), "in MRS Abstracts by Number of Occurences", sep=" ")) +
+  theme(text=element_text(size=16), panel.background=element_rect(fill='white'), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.text=element_text(size=12), legend.position="none") 
+
+
+
+View(y)
+
 #(3) Topic Modelling
+ 
+
+#Clean up Document Term Matrix
+a.tdm.sp.t <- t(tdm2) # transpose document term matrix, necessary for the next steps using mean term frequency-inverse document frequency (tf-idf) to select the vocabulary for topic modeling
+summary(col_sums(a.tdm.sp.t)) # check median...
+term_tfidf <- tapply(a.tdm.sp.t$v/row_sums(a.tdm.sp.t)[a.tdm.sp.t$i], a.tdm.sp.t$j,mean) * log2(nDocs(a.tdm.sp.t)/col_sums(a.tdm.sp.t>0)) # calculate tf-idf values
+summary(term_tfidf) # check median... note value for next line... 
+a.tdm.sp.t.tdif <- a.tdm.sp.t[,term_tfidf>=1.0] # keep only those terms that are slightly less frequent that the median
+a.tdm.sp.t.tdif <- a.tdm.sp.t[row_sums(a.tdm.sp.t) > 0, ]
+summary(col_sums(a.tdm.sp.t.tdif)) # have a look
+
+#Choose the number of topics
+ntop <-5
+lda <- LDA(a.tdm.sp.t.tdif, ntop) # generate a LDA model the optimum number of topics
+user_topic <- posterior(lda)[[2]]  # rows give each document’s proportion from each topic   
+
+get_terms(lda, 5) # get keywords for each topic, just for a quick look
 
