@@ -5,9 +5,9 @@ Materials Research Society -- Scraping and Natural Language Processing
 (2) R Script to clean data, create a word cloud, count words over time, and generate topic models
 
 
-(A) Word Cloud of Most Common Terms in MRS Abstracts
+*(A) Word Cloud of Most Common Terms in MRS Abstracts*
 ![](images/wordcloud.png?raw=true)
 
-(B) Word Count Plots over time
+*(B) Word Count Plots over time*
 ![](images/nanofibers2.png?raw=true)
 ![](images/zno2.png?raw=true)
