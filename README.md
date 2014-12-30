@@ -1,7 +1,7 @@
 Materials Research Society -- Scraping and Natural Language Processing
 ============
 
-To explore word counts over time, [click here](ec2-54-69-221-30.us-west-2.compute.amazonaws.com:3838/).
+To explore word counts over time, [click here](http://ec2-54-69-221-30.us-west-2.compute.amazonaws.com:3838).
 
 This repository contained the following: 
 
