@@ -15,5 +15,5 @@ Here are some images of data exploration:
 ![](images/wordcloud.png?raw=true)
 
 **(B) Word Count Plots over time**
-![](images/nanofibers2.png?raw=true)
-![](images/zno2.png?raw=true)
+![](images/nanofibers.png?raw=true)
+![](images/photocurrent.png?raw=true)

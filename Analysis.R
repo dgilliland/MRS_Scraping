@@ -9,29 +9,39 @@ require("NLP")
 require("cwhmisc")
 require("slam")
 require("e1071")
-require("Hmisc")
+#require("Hmisc")
+require("topicmodels")
 
 
 setwd("~/Desktop/MRS/")
 
 list.files()
 
-df1 <- read.csv("MRS1001.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df2 <- read.csv("MRS1002.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df3 <- read.csv("MRS1003.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df4 <- read.csv("MRS1004.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df5 <- read.csv("MRS1005.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df6 <- read.csv("MRS1006.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df7 <- read.csv("MRS1007.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df8 <- read.csv("MRS1008.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df9 <- read.csv("MRS1009.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df10 <- read.csv("MRS1010.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
-df11 <- read.csv("MRS1011.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df1 <- read.csv("MRS5001.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df2 <- read.csv("MRS5002.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df3 <- read.csv("MRS5003.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df4 <- read.csv("MRS5004.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df5 <- read.csv("MRS5005.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df6 <- read.csv("MRS5006.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df7 <- read.csv("MRS5007.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df8 <- read.csv("MRS5008.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df9 <- read.csv("MRS5009.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df10 <- read.csv("MRS5010.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df11 <- read.csv("MRS5011.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
 df12 <- read.csv("MRS1012.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
 df13 <- read.csv("MRS1013.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
 df14 <- read.csv("MRS1014.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df15 <- read.csv("MRS481.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df16 <- read.csv("MRS482.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df17 <- read.csv("MRS483.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df18 <- read.csv("MRS484.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df19 <- read.csv("MRS485.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
+df20 <- read.csv("MRS486.csv",sep="\t",header=FALSE, stringsAsFactors=FALSE)
 
-df <- rbind(df1,df2,df3,df4,df5,df6,df8,df9,df11,df12,df13,df14)
+View(df17)
+
+
+df <- rbind(df1,df2,df3,df4,df5,df6,df7,df8,df9,df10,df11,df12,df13,df14,df15,df16,df17,df18,df19,df20)
 #Name Variables
 colnames(df)[1] <- "URL"
 colnames(df)[2] <- "Symposium"
@@ -97,7 +107,7 @@ mach_corpus <- Corpus(VectorSource(as.character(df$Abstract)))
 #(1a) Create Document Term Matrix
 tdm <- TermDocumentMatrix(mach_corpus,
                           control = list(removePunctuation = TRUE,
-                                         stopwords = c(stopwords("english"),"well","also","like","will","one","two"),
+                                         stopwords = c(stopwords("english"),"high","low","used","due","can","size","area","well","also","like","will","one","two","first","non","work","use"),
                                          removeNumbers = TRUE, tolower = TRUE))
 tdm2 <- removeSparseTerms(tdm, 0.99999)
 dtm3 <- rollup(tdm, 2, na.rm=TRUE, FUN = sum)
@@ -112,7 +122,7 @@ n<-n[order(-n$count),]
 
 
 #(1c) Plot Wordcloud
-wordcloud(n$word[1:200], n$count[1:200], random.order=FALSE, colors=brewer.pal(8, "Dark2"))
+wordcloud(n$word[1:500], n$count[1:500], random.order=FALSE, colors=brewer.pal(9, "Dark2"))
 View(n)
 
 # save the image in png format
@@ -124,7 +134,7 @@ dev.off()
 c(1997:1999,2007:2011)
 
 #(2) Changes in Frequency over Time
-for (i in c(1997:1999,2007:2011)) {
+for (i in c(1997:1999,2007:2014)) {
 mach_corpus <- Corpus(VectorSource(as.character(df$Abstract[df$year==i])))
 tdm <- TermDocumentMatrix(mach_corpus,
                           control = list(removePunctuation = TRUE,
@@ -171,21 +181,18 @@ ggplot(x,aes(x=year,y=rank)) + geom_point(size=5) +
 View(y)
 
 #(3) Topic Modelling
- 
+# Based off of code created by Ben Marwick posted here: https://github.com/benmarwick/AAA2011-Tweets
 
 #Clean up Document Term Matrix
-a.tdm.sp.t <- t(tdm2) # transpose document term matrix, necessary for the next steps using mean term frequency-inverse document frequency (tf-idf) to select the vocabulary for topic modeling
-summary(col_sums(a.tdm.sp.t)) # check median...
+a.tdm.sp.t <- t(tdm2) # Transpose document term matrix, necessary for the next steps using mean term frequency-inverse document frequency (tf-idf) to select the vocabulary for topic modeling
 term_tfidf <- tapply(a.tdm.sp.t$v/row_sums(a.tdm.sp.t)[a.tdm.sp.t$i], a.tdm.sp.t$j,mean) * log2(nDocs(a.tdm.sp.t)/col_sums(a.tdm.sp.t>0)) # calculate tf-idf values
-summary(term_tfidf) # check median... note value for next line... 
-a.tdm.sp.t.tdif <- a.tdm.sp.t[,term_tfidf>=1.0] # keep only those terms that are slightly less frequent that the median
+a.tdm.sp.t.tdif <- a.tdm.sp.t[,term_tfidf>=0.5] # Keep only those terms that are slightly less frequent than the median
 a.tdm.sp.t.tdif <- a.tdm.sp.t[row_sums(a.tdm.sp.t) > 0, ]
-summary(col_sums(a.tdm.sp.t.tdif)) # have a look
 
 #Choose the number of topics
-ntop <-5
+ntop <-10
 lda <- LDA(a.tdm.sp.t.tdif, ntop) # generate a LDA model the optimum number of topics
 user_topic <- posterior(lda)[[2]]  # rows give each document’s proportion from each topic   
 
-get_terms(lda, 5) # get keywords for each topic, just for a quick look
-
+View(get_terms(lda, 12)) # get keywords for each topic, just for a quick look
+View(user_topic)
