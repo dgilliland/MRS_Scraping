@@ -51,7 +51,7 @@ def parse_entry(line_buffer):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Transform Cables to Newman Ingest Format')
+    parser = argparse.ArgumentParser(description='Transform Symposium PDF\'s to MRS Ingest Format')
     parser.add_argument("pdf_dir", help="directory containing pdf abstract files")
     parser.add_argument("output_file", help="output file name (MRS.csv?)")
     parser.add_argument("url", help="url pdf files came from (http://www.mrs.org/...")
